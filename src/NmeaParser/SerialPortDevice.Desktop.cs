@@ -35,9 +35,7 @@ namespace NmeaParser
         /// <exception cref="System.ArgumentNullException">port</exception>
         public SerialPortDevice(System.IO.Ports.SerialPort port)
 		{
-			if (port == null)
-				throw new ArgumentNullException("port");
-			Port = port;
+		    Port = port ?? throw new ArgumentNullException("port");
 		}
 
         /// <summary>
@@ -52,8 +50,11 @@ namespace NmeaParser
         protected override Task<System.IO.Stream> OpenStreamAsync()
 		{
             if (!Port.IsOpen)
+            {
                 Port.Open();
-			return Task.FromResult<System.IO.Stream>(Port.BaseStream);
+            }
+
+		    return Task.FromResult<System.IO.Stream>(Port.BaseStream);
 		}
 
 		/// <summary>
@@ -64,8 +65,11 @@ namespace NmeaParser
 		protected override Task CloseStreamAsync(System.IO.Stream stream)
 		{
             if (Port.IsOpen)
+            {
                 Port.Close();
-			return Task.FromResult<object>(null);
+            }
+
+		    return Task.FromResult<object>(null);
 		}
 
 		/// <summary>

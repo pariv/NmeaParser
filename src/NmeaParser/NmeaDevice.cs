@@ -51,8 +51,12 @@ namespace NmeaParser
 		{
 			lock (m_lockObject)
 			{
-				if (IsOpen || m_isOpening) return;
-                m_isOpening = true;
+				if (IsOpen || m_isOpening)
+				{
+				    return;
+				}
+
+			    m_isOpening = true;
 			}
 			m_cts = new System.Threading.CancellationTokenSource();
 			m_stream = await OpenStreamAsync();
@@ -76,21 +80,32 @@ namespace NmeaParser
 				while (!token.IsCancellationRequested)
 				{
 					int readCount = 0;
-					try
-					{
-						readCount = await ReadAsync(buffer, 0, 1024, token).ConfigureAwait(false);
-					}
-					catch { }
-					if (token.IsCancellationRequested)
-						break;
-					if (readCount > 0)
+				    try
+				    {
+				        readCount = await ReadAsync(buffer, 0, 1024, token).ConfigureAwait(false);
+				    }
+				    catch (IOException)
+				    {
+				        break;
+				    }
+				    catch
+				    {
+				        // ignored
+				    }
+
+				    if (token.IsCancellationRequested)
+				    {
+				        break;
+				    }
+
+				    if (readCount > 0)
 					{
 						OnData(buffer.Take(readCount).ToArray());
 					}
 					await Task.Delay(50);
 				}
-				if (m_closeTask != null)
-					m_closeTask.SetResult(true);
+
+			    m_closeTask?.SetResult(true);
 			});
 		}
 

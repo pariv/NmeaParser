@@ -184,24 +184,32 @@ namespace SampleApp.WinDesktop
 					var defaultRate = port.BaudRate;
 					List<int> baudRatesToTest = new List<int>(new[] { 9600, 4800, 115200, 19200, 57600, 38400, 2400 }); //Ordered by likelihood
 					//Move default rate to first spot
-					if (baudRatesToTest.Contains(defaultRate)) baudRatesToTest.Remove(defaultRate);
-					baudRatesToTest.Insert(0, defaultRate);
+					if (baudRatesToTest.Contains(defaultRate))
+					{
+					    baudRatesToTest.Remove(defaultRate);
+					}
+
+				    baudRatesToTest.Insert(0, defaultRate);
 					foreach (var baud in baudRatesToTest)
 					{
+					    port.BaudRate = baud;
+					    port.ReadTimeout = 2000; //this might not be long enough
 
-						if (progress != null)
-							progress.Report(string.Format("Trying {0} @ {1}baud", portName, port.BaudRate));
-						port.BaudRate = baud;
-						port.ReadTimeout = 2000; //this might not be long enough
+					    progress?.Report($"Trying {portName} @ {port.BaudRate}baud");
+
 						bool success = false;
 						try
 						{
 							port.Open();
 							if (!port.IsOpen)
-								continue; //couldn't open port
-							try
+							{
+							    continue; //couldn't open port
+							}
+
+						    try
 							{
 								port.ReadTo("$GP");
+							    success = true;
 							}
 							catch (TimeoutException)
 							{
